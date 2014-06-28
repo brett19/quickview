@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "chokidar": "^0.8.2",
+    "express": "^4.4.5"
+  },
+  "scripts": {
+    "install": "cp dita_bin/start_quickview ../start_quickview"
+  }
+}

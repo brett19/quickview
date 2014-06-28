@@ -1,0 +1,18 @@
+#!/bin/bash
+
+#
+# This file should be placed in your DITA-OT root folder
+# alongside the quickview folder.
+
+die () {
+    echo >&2 "$@"
+    exit 1
+}
+
+[ "$#" -eq 1 ] || die "Must specify path to a ditamap!"
+
+echo "Preparing DITA Environment"
+SHELL="echo" . startcmd.sh
+
+echo "Launching QuickView"
+node quickview/main.js $1

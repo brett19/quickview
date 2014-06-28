@@ -1,0 +1,120 @@
+<div style="position: fixed; bottom: 10px; left: 10px; width: 400px; z-index:100;">
+<div id="statusOld" class="alert alert-error">
+  Your are looking at old content.  Please refresh!
+</div>
+<div id="statusError" class="alert alert-error">
+  An error occured while trying to build.<br />
+  Refresh to see a log with details on why...
+</div>
+<div id="statusBuilding" class="alert alert-info">
+Documentation is currently rebuilding...
+<div class="progress progress-striped active">
+<div id="statusVal" class="bar" style="width: 0%;"></div></div>
+</div>
+<div id="statusCore" class="alert alert-success">
+  <span id="statusTxt">--status--</span><br /><br />
+  <button id="statusRebuild" type="button" class="btn btn-primary">Rebuild Now</button>
+  <button id="statusAuto" type="button" class="btn btn-success">AutoRebuild is ON</button>
+</div>
+<script type="text/javascript">
+var state = {
+  READY: 0,
+  UNBUILT: 1,
+  BUILDING: 2,
+  ERROR: 3
+};
+var myRevId = initialStatus.buildRev;
+var ustatus = initialStatus;
+var timeTicker = null;
+
+function stopTicker() {
+  if (timeTicker) {
+    clearInterval(timeTicker);
+  }
+}
+function resetTicker() {
+  stopTicker();
+  timeTicker = setInterval(function() {
+    ustatus.timeCur += 100;
+    updateTicker();
+  }, 100);
+}
+function updateTicker() {
+  $('#statusVal').css('width', Math.round(ustatus.timeCur/ustatus.timeTotal*100) + '%');
+}
+function updateDialog() {
+  $('#statusCore').removeClass('alert-success alert-warning alert-error');
+
+  if (ustatus.buildRev === ustatus.fileRev) {
+    $('#statusCore').addClass('alert-success');
+    $('#statusTxt').text('Documentation is up to date.');
+  } else {
+    $('#statusCore').addClass('alert-warning');
+    $('#statusTxt').text('Documentation is out of date!');
+  }
+
+  if (ustatus.status === state.ERROR) {
+    $('#statusError').show();
+  } else {
+    $('#statusError').hide();
+  }
+
+  if (myRevId !== ustatus.buildRev && ustatus.status !== state.BUILDING) {
+    $('#statusOld').show();
+  } else {
+    $('#statusOld').hide();
+  }
+
+  if (ustatus.status === state.BUILDING) {
+    $('#statusBuilding').show();
+    $('#statusRebuild').attr('disabled', 'disabled');
+  } else {
+    $('#statusBuilding').hide();
+    $('#statusRebuild').removeAttr('disabled');
+  }
+
+  $('#statusAuto').removeClass('btn-success btn-inverse');
+  if (ustatus.auto) {
+    $('#statusAuto').addClass('btn-success');
+    $('#statusAuto').text('AutoRebuild is ON');
+  } else {
+    $('#statusAuto').addClass('btn-inverse');
+    $('#statusAuto').text('AutoRebuild is OFF');
+  }
+}
+function updateStatus() {
+  updateTicker();
+  updateDialog();
+  if (ustatus.status === state.BUILDING) {
+    resetTicker();
+  } else {
+    stopTicker();
+  }
+}
+function pollStatus() {
+  $.get('/__status', function(res) {
+    ustatus = res;
+    updateStatus();
+  }).always(function() {
+    setTimeout(pollStatus, 500);
+  });
+}
+
+$(document).ready(function() {
+  updateStatus();
+  pollStatus();
+
+  $('#statusRebuild').on('click', function() {
+    $.get('/__rebuild', function(res) {
+      ustatus = res;
+      updateStatus();
+    });
+  });
+  $('#statusAuto').on('click', function() {
+    $.get('/__toggleAuto', function(res) {
+      ustatus = res;
+      updateStatus();
+    });
+  });
+})
+</script>
