@@ -1,4 +1,4 @@
-<div style="position: fixed; bottom: 10px; left: 10px; width: 400px; z-index:100;">
+<div style="position: fixed; bottom: 10px; left: 10px; width: 440px; z-index:100;">
 <div id="statusOld" class="alert alert-error">
   Your are looking at old content.  Please refresh!
 </div>
@@ -13,8 +13,9 @@ Documentation is currently rebuilding...
 </div>
 <div id="statusCore" class="alert alert-success">
   <span id="statusTxt">--status--</span><br /><br />
-  <button id="statusRebuild" type="button" class="btn btn-primary">Rebuild Now</button>
+  <button id="statusRebuild" type="button" class="btn btn-primary">Rebuild</button>
   <button id="statusAuto" type="button" class="btn btn-success">AutoRebuild is ON</button>
+  <button id="statusARef" type="button" class="btn btn-success">AutoRefresh is ON</button>
 </div>
 <script type="text/javascript">
 var state = {
@@ -61,6 +62,10 @@ function updateDialog() {
 
   if (myRevId !== ustatus.buildRev && ustatus.status !== state.BUILDING) {
     $('#statusOld').show();
+
+    setTimeout(function() {
+      window.location.reload();
+    }, 50);
   } else {
     $('#statusOld').hide();
   }
@@ -80,6 +85,15 @@ function updateDialog() {
   } else {
     $('#statusAuto').addClass('btn-inverse');
     $('#statusAuto').text('AutoRebuild is OFF');
+  }
+
+  $('#statusARef').removeClass('btn-success btn-inverse');
+  if (ustatus.aref) {
+    $('#statusARef').addClass('btn-success');
+    $('#statusARef').text('AutoRefresh is ON');
+  } else {
+    $('#statusARef').addClass('btn-inverse');
+    $('#statusARef').text('AutoRefresh is OFF');
   }
 }
 function updateStatus() {
@@ -112,6 +126,12 @@ $(document).ready(function() {
   });
   $('#statusAuto').on('click', function() {
     $.get('/__toggleAuto', function(res) {
+      ustatus = res;
+      updateStatus();
+    });
+  });
+  $('#statusARef').on('click', function() {
+    $.get('/__toggleARef', function(res) {
       ustatus = res;
       updateStatus();
     });

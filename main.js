@@ -25,6 +25,7 @@ var exitcode = null;
 var startTime = null;
 var lastTimeTaken = 8000;
 var autoRebuild = true;
+var autoRefresh = false;
 
 var ditamapPath = process.argv[2];
 
@@ -99,7 +100,8 @@ function currentStatus() {
     timeCur: curRunTime,
     fileRev: fileRevId,
     buildRev: buildRevId,
-    auto: autoRebuild
+    auto: autoRebuild,
+    aref: autoRefresh
   };
 }
 
@@ -110,6 +112,10 @@ app.use('/__rebuild', function(req, res, next) {
 
 app.use('/__toggleAuto', function(req, res, next) {
   autoRebuild = !autoRebuild;
+  res.send(currentStatus());
+});
+app.use('/__toggleARef', function(req, res, next) {
+  autoRefresh = !autoRefresh;
   res.send(currentStatus());
 });
 
